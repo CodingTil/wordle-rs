@@ -2,12 +2,12 @@ use color_eyre::eyre::Result;
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
-    layout::{Constraint, Layout, Rect, Alignment},
+    layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span},
-    widgets::{Block, Paragraph, Borders},
+    widgets::{Block, Borders, Paragraph},
 };
-use wordle_core::{LetterResult, GameError, GuessResult};
+use wordle_core::{GameError, GuessResult, LetterResult};
 
 const MAX_ATTEMPTS: usize = 6;
 const WORD_LENGTH: usize = 5;
@@ -89,7 +89,10 @@ impl App {
                 self.error_message = None;
                 self.outcome = Some(GameOutcome::Won);
             }
-            Ok(GuessResult::Lost { last_guess, solution }) => {
+            Ok(GuessResult::Lost {
+                last_guess,
+                solution,
+            }) => {
                 self.guesses.push((guess, last_guess));
                 self.current_input.clear();
                 self.error_message = None;
@@ -118,7 +121,8 @@ fn run(mut terminal: DefaultTerminal) -> Result<()> {
         terminal.draw(|frame| render(frame, &app))?;
 
         if let Event::Key(key) = event::read()? {
-            if key.code == KeyCode::Char('q') || key.code == KeyCode::Char('Q') && !app.is_playing() {
+            if key.code == KeyCode::Char('q') || key.code == KeyCode::Char('Q') && !app.is_playing()
+            {
                 break Ok(());
             }
             if key.code == KeyCode::Esc {
@@ -133,9 +137,9 @@ fn render(frame: &mut Frame, app: &App) {
     let area = frame.area();
 
     let layout = Layout::vertical([
-        Constraint::Length(3),  // Title
-        Constraint::Min(15),    // Game board
-        Constraint::Length(5),  // Status/help
+        Constraint::Length(3), // Title
+        Constraint::Min(15),   // Game board
+        Constraint::Length(5), // Status/help
     ])
     .split(area);
 
@@ -184,9 +188,7 @@ fn render_game_board(frame: &mut Frame, app: &App, area: Rect) {
             let ch = app.current_input.get(i).unwrap_or(&' ');
             current_spans.push(Span::styled(
                 format!(" {} ", ch.to_uppercase()),
-                Style::default()
-                    .fg(Color::White)
-                    .bg(Color::DarkGray),
+                Style::default().fg(Color::White).bg(Color::DarkGray),
             ));
         }
         lines.push(Line::from(current_spans));
@@ -194,15 +196,13 @@ fn render_game_board(frame: &mut Frame, app: &App, area: Rect) {
     }
 
     // Render remaining empty rows
-    let remaining_rows = app.game.max_attempts().saturating_sub(app.guesses.len() + if app.is_playing() { 1 } else { 0 });
+    let remaining_rows = app
+        .game
+        .max_attempts()
+        .saturating_sub(app.guesses.len() + if app.is_playing() { 1 } else { 0 });
     for _ in 0..remaining_rows {
         let empty_spans: Vec<Span> = (0..WORD_LENGTH)
-            .map(|_| {
-                Span::styled(
-                    "   ",
-                    Style::default().fg(Color::DarkGray).bg(Color::Black),
-                )
-            })
+            .map(|_| Span::styled("   ", Style::default().fg(Color::DarkGray).bg(Color::Black)))
             .collect();
         lines.push(Line::from(empty_spans));
         lines.push(Line::from(""));
@@ -239,13 +239,11 @@ fn render_status(frame: &mut Frame, app: &App, area: Rect) {
             ]
         }
         None => {
-            let mut status_lines = vec![
-                Line::from(format!(
-                    "Attempt {}/{}",
-                    app.game.attempts() + 1,
-                    app.game.max_attempts()
-                )),
-            ];
+            let mut status_lines = vec![Line::from(format!(
+                "Attempt {}/{}",
+                app.game.attempts() + 1,
+                app.game.max_attempts()
+            ))];
 
             if let Some(ref error) = app.error_message {
                 status_lines.push(Line::from(Span::styled(

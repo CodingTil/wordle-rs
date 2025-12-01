@@ -1,18 +1,19 @@
+use rand::prelude::*;
 use std::collections::HashSet;
 use std::sync::LazyLock;
-use rand::prelude::*;
 
 use wordle_proc::include_wordlist;
 
-const WORDLIST_ARRAY: &[[char; 5]] = &include_wordlist!("words_alpha.txt");
-static WORDLIST: LazyLock<HashSet<[char; 5]>> = LazyLock::new(|| {
-    WORDLIST_ARRAY.iter().copied().collect()
-});
+const WORDLIST_ARRAY: &[[char; 5]] = &include_wordlist!("wordlist.txt");
+static WORDLIST: LazyLock<HashSet<[char; 5]>> =
+    LazyLock::new(|| WORDLIST_ARRAY.iter().copied().collect());
 
+#[derive(Debug)]
 pub enum WordListError {
     WordListEmpty,
 }
 
+#[derive(Debug)]
 pub enum GameError {
     WordNotInList,
 }
@@ -22,21 +23,21 @@ pub enum GuessResult {
     Won([LetterResult; 5]),
     Lost {
         last_guess: [LetterResult; 5],
-        solution: [char; 5]
+        solution: [char; 5],
     },
 }
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum LetterResult {
     Correct,
     Misplaced,
     Absent,
 }
 
-fn take_guess(solution: &[char; 5], guess: &[char; 5]) -> [LetterResult; 5] {
+pub fn take_guess(solution: &[char; 5], guess: &[char; 5]) -> [LetterResult; 5] {
     let mut result = [LetterResult::Absent; 5];
     let mut solution_used = [false; 5];
-    
+
     // First pass: mark correct positions
     for (i, &guess_char) in guess.iter().enumerate() {
         if guess_char == solution[i] {
@@ -44,13 +45,13 @@ fn take_guess(solution: &[char; 5], guess: &[char; 5]) -> [LetterResult; 5] {
             solution_used[i] = true;
         }
     }
-    
+
     // Second pass: mark misplaced letters
     for (i, &guess_char) in guess.iter().enumerate() {
         if result[i] == LetterResult::Correct {
             continue;
         }
-        
+
         for (j, &sol_char) in solution.iter().enumerate() {
             if !solution_used[j] && sol_char == guess_char {
                 result[i] = LetterResult::Misplaced;
@@ -59,10 +60,11 @@ fn take_guess(solution: &[char; 5], guess: &[char; 5]) -> [LetterResult; 5] {
             }
         }
     }
-    
+
     result
 }
 
+#[derive(Clone)]
 pub struct Game {
     solution: [char; 5],
     max_attempts: usize,
@@ -74,9 +76,9 @@ impl Game {
         let mut rng = rand::rng();
         match WORDLIST_ARRAY.choose(&mut rng) {
             Some(&word) => Ok(Game {
-                            solution: word,
-                            max_attempts,
-                            attempts: 0,
+                solution: word,
+                max_attempts,
+                attempts: 0,
             }),
             None => Err(WordListError::WordListEmpty),
         }
@@ -102,7 +104,7 @@ impl Game {
             (false, false) => GuessResult::Continue(result),
         })
     }
-    
+
     pub fn has_attempts_left(&self) -> bool {
         self.attempts < self.max_attempts
     }
@@ -119,7 +121,7 @@ impl Game {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_take_guess() {
         let solution = ['a', 'b', 'c', 'd', 'e'];
@@ -150,6 +152,23 @@ mod tests {
                 LetterResult::Misplaced,
                 LetterResult::Correct,
                 LetterResult::Absent
+            ]
+        );
+    }
+
+    #[test]
+    fn test_take_guess_double_letters_at_start_and_end() {
+        let solution = ['a', 'x', 'a', 'x', 'a'];
+        let guess = ['a', 'a', 'y', 'a', 'a'];
+        let result = take_guess(&solution, &guess);
+        assert_eq!(
+            result,
+            [
+                LetterResult::Correct,
+                LetterResult::Misplaced,
+                LetterResult::Absent,
+                LetterResult::Absent,
+                LetterResult::Correct
             ]
         );
     }

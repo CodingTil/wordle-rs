@@ -8,6 +8,3 @@ A Wordle game implementation in Rust with a terminal UI.
 cargo run --bin wordle_cli
 ```
 
-## Credits
-
-The wordlist file (`words_alpha.txt`) was taken from [dwyl/english-words](https://github.com/dwyl/english-words).
