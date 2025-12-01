@@ -9,6 +9,7 @@ use wordle_core::LetterResult;
 /// each word by summing S(p) = -(p² + (1-p)²) for each unique letter, where p is the
 /// letter's frequency. This formula is maximized when p = 0.5, encouraging guesses
 /// with letters that appear in about half the candidates.
+#[derive(Clone)]
 pub struct HeuristicGuesser {
     /// All available words
     wordlist: Vec<[char; 5]>,

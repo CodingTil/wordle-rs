@@ -2692,7 +2692,11 @@ dependencies = [
 name = "wordle_ai_web"
 version = "0.1.0"
 dependencies = [
+ "getrandom",
  "leptos",
+ "wordle_ai",
+ "wordle_core",
+ "wordle_proc",
 ]
 
 [[package]]
