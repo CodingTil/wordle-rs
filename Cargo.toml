@@ -1,0 +1,3 @@
+[workspace]
+resolver = "3"
+members = ["wordle_cli","wordle_core", "wordle_proc"]

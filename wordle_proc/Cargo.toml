@@ -1,0 +1,11 @@
+[package]
+name = "wordle_proc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+quote = "1.0.42"
+syn = "2.0.111"
+
+[lib]
+proc-macro = true
