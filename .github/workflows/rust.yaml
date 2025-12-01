@@ -1,0 +1,46 @@
+on: push
+
+name: Build and test
+
+jobs:
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Clippy
+        run: cargo clippy --all-features -- -D warnings
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Format
+        run: cargo fmt --all -- --check
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build
+        run: cargo build --all-features
+  
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test
+        run: cargo test --all-features
+
+  ai_website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wordle_ai_web
+    steps:
+      - uses: actions/checkout@v6
+      - name: Add wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Install Trunk
+        run: cargo install --locked trunk
+      - name: Build
+        run: trunk build --release --verbose
