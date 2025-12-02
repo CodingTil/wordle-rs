@@ -1,4 +1,6 @@
 use leptos::prelude::*;
+use leptos::wasm_bindgen::JsCast;
+use leptos::web_sys;
 use wordle_core::{Language, LetterResult};
 
 use crate::components::{Footer, Header, MessageBanner, MessageType, Tile};
@@ -125,6 +127,32 @@ pub fn Game() -> impl IntoView {
         }
     };
 
+    // Handle input change (for mobile)
+    let handle_input = move |ev: web_sys::Event| {
+        let target = ev.target().unwrap();
+        let input: web_sys::HtmlInputElement = target.dyn_into().unwrap();
+        let value = input.value();
+
+        if !game_over.get() {
+            // Take only alphabetic characters, max 5
+            let filtered: String = value
+                .chars()
+                .filter(|c| c.is_alphabetic())
+                .take(5)
+                .collect::<String>()
+                .to_lowercase();
+
+            set_current_guess.set(filtered);
+        }
+    };
+
+    // Handle Enter key on input (for mobile)
+    let handle_input_keydown = move |ev: web_sys::KeyboardEvent| {
+        if ev.key() == "Enter" && !game_over.get() {
+            submit_guess();
+        }
+    };
+
     view! {
         <div
             class="app"
@@ -147,6 +175,20 @@ pub fn Game() -> impl IntoView {
             <div class="content">
                 <div class="section">
                     <div class="section__title">"Guess the 5-letter word"</div>
+
+                    {/* Mobile input field */}
+                    <div class="mobile-input-container">
+                        <input
+                            type="text"
+                            class="mobile-input"
+                            placeholder="Type your guess..."
+                            maxlength="5"
+                            prop:value=move || current_guess.get()
+                            on:input=handle_input
+                            on:keydown=handle_input_keydown
+                            disabled=move || game_over.get()
+                        />
+                    </div>
 
                     <div class="game-board">
                         {/* Previous guesses */}

@@ -336,6 +336,68 @@ body {
     width: 100%;
 }
 
+/* Mobile Input */
+.mobile-input-container {
+    display: none;
+}
+
+.mobile-input {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    padding: 12px 16px;
+    border: 2px solid #d3d6da;
+    border-radius: 4px;
+    text-align: center;
+    width: 100%;
+    background-color: #ffffff;
+    color: #1a1a1b;
+    box-sizing: border-box;
+}
+
+.mobile-input:focus {
+    outline: none;
+    border-color: #6aaa64;
+}
+
+.mobile-input:disabled {
+    background-color: #f8f8f8;
+    color: #878a8c;
+    cursor: not-allowed;
+}
+
+.mobile-input::placeholder {
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+/* Show input on touch devices */
+@media (pointer: coarse) {
+    .mobile-input-container {
+        display: block;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: 330px;
+        margin: 0 auto 16px auto;
+    }
+}
+
+/* Also show on small screens regardless of pointer type */
+@media (max-width: 480px) {
+    .mobile-input-container {
+        display: block;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: 330px;
+        padding: 0 20px;
+        margin: 0 auto 16px auto;
+    }
+}
+
 /* Instructions */
 .instructions {
     text-align: center;
