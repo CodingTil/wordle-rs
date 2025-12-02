@@ -1,11 +1,8 @@
 use leptos::prelude::*;
 use wordle_ai::{HeuristicGuesser, WordleAI};
-use wordle_core::LetterResult;
-use wordle_proc::include_wordlist;
+use wordle_core::{Language, LetterResult};
 
 mod styles;
-
-const WORDLIST_ARRAY: &[[char; 5]] = &include_wordlist!("wordlist.txt");
 
 fn main() {
     leptos::mount::mount_to_body(App)
@@ -14,7 +11,8 @@ fn main() {
 #[component]
 fn App() -> impl IntoView {
     // State
-    let mut initial_ai = HeuristicGuesser::new(WORDLIST_ARRAY.to_vec());
+    let (language, set_language) = signal(Language::English);
+    let mut initial_ai = HeuristicGuesser::new(Language::English.wordlist_array().to_vec());
     let initial_recommendation = initial_ai.make_guess();
     let (ai, set_ai) = signal(initial_ai);
     let (recommendation, set_recommendation) = signal(initial_recommendation);
@@ -98,9 +96,23 @@ fn App() -> impl IntoView {
         }
     };
 
+    // Change language
+    let change_language = move |new_lang: Language| {
+        let mut ai_val = HeuristicGuesser::new(new_lang.wordlist_array().to_vec());
+        let next = ai_val.make_guess();
+        set_language.set(new_lang);
+        set_ai.set(ai_val);
+        set_recommendation.set(next);
+        set_feedback.set([None; 5]);
+        set_history.set(Vec::new());
+        set_message.set(None);
+        set_won.set(false);
+    };
+
     // Reset
     let reset = move |_| {
-        let mut ai_val = HeuristicGuesser::new(WORDLIST_ARRAY.to_vec());
+        let current_lang = language.get();
+        let mut ai_val = HeuristicGuesser::new(current_lang.wordlist_array().to_vec());
         let next = ai_val.make_guess();
         set_ai.set(ai_val);
         set_recommendation.set(next);
@@ -117,6 +129,24 @@ fn App() -> impl IntoView {
             {/* Header */}
             <div class="header">
                 "WORDLE SOLVER"
+                <select
+                    class="language-select"
+                    on:change=move |ev| {
+                        let value = event_target_value(&ev);
+                        let new_lang = match value.as_str() {
+                            "de" => Language::German,
+                            _ => Language::English,
+                        };
+                        change_language(new_lang);
+                    }
+                    prop:value=move || match language.get() {
+                        Language::English => "en",
+                        Language::German => "de",
+                    }
+                >
+                    <option value="en">"English"</option>
+                    <option value="de">"German"</option>
+                </select>
             </div>
 
             {/* Message Banner */}

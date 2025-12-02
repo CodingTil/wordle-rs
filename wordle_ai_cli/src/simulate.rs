@@ -13,7 +13,8 @@ use std::sync::{Arc, Mutex};
 use wordle_ai::WordleAI;
 use wordle_core::{Game, GuessResult};
 
-use crate::common::{AIType, WORDLIST_ARRAY, create_ai};
+use crate::common::{AIType, create_ai, get_wordlist};
+use wordle_core::Language;
 
 const MAX_ATTEMPTS: usize = 6;
 
@@ -104,7 +105,7 @@ fn simulate_game(ai: &mut Box<dyn WordleAI>, game: &Game) -> Option<usize> {
 }
 
 /// Run simulation for specified AI agents (parallelized)
-pub fn run_simulation(num_games: usize, ai_types: Vec<AIType>) -> Result<()> {
+pub fn run_simulation(num_games: usize, ai_types: Vec<AIType>, language: Language) -> Result<()> {
     println!("Starting simulation of {} games...", num_games);
     println!(
         "Testing AI agents: {}",
@@ -137,11 +138,11 @@ pub fn run_simulation(num_games: usize, ai_types: Vec<AIType>) -> Result<()> {
             }
         }
 
-        let game = Game::new(MAX_ATTEMPTS).unwrap();
+        let game = Game::new(MAX_ATTEMPTS, language).unwrap();
 
         // Each AI plays this game
         for &ai_type in &ai_types {
-            let wordlist = WORDLIST_ARRAY.to_vec();
+            let wordlist = get_wordlist(language).to_vec();
             let mut ai = create_ai(ai_type, wordlist);
 
             let result = simulate_game(&mut ai, &game);

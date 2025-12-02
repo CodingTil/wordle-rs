@@ -1,9 +1,8 @@
 use clap::ValueEnum;
 use wordle_ai::{EntropyGuesser, HeuristicGuesser, RandomGuesser, RandomWithUpdates, WordleAI};
-use wordle_proc::include_wordlist;
+use wordle_core::Language;
 
 pub const WORD_LENGTH: usize = 5;
-pub const WORDLIST_ARRAY: &[[char; 5]] = &include_wordlist!("wordlist.txt");
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Hash)]
 pub enum AIType {
@@ -37,4 +36,9 @@ pub fn create_ai(ai_type: AIType, wordlist: Vec<[char; 5]>) -> Box<dyn WordleAI>
         AIType::Heuristic => Box::new(HeuristicGuesser::new(wordlist)),
         AIType::Entropy => Box::new(EntropyGuesser::new(wordlist)),
     }
+}
+
+/// Get the wordlist array for a given language
+pub fn get_wordlist(language: Language) -> &'static [[char; 5]] {
+    language.wordlist_array()
 }

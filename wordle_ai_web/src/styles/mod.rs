@@ -44,6 +44,33 @@ body {
     text-align: center;
     padding: 10px 0;
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Language Select */
+.language-select {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 2px solid #d3d6da;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #1a1a1b;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.language-select:hover {
+    border-color: #878a8c;
+}
+
+.language-select:focus {
+    outline: none;
+    border-color: #6aaa64;
 }
 
 /* Message Banner */
@@ -283,6 +310,13 @@ body {
         font-size: 24px;
         letter-spacing: 1px;
         padding: 8px 0;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .language-select {
+        font-size: 13px;
+        padding: 5px 10px;
     }
 
     .content {

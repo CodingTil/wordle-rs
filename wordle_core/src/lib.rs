@@ -4,9 +4,36 @@ use std::sync::LazyLock;
 
 use wordle_proc::include_wordlist;
 
-const WORDLIST_ARRAY: &[[char; 5]] = &include_wordlist!("wordlist.txt");
-static WORDLIST: LazyLock<HashSet<[char; 5]>> =
-    LazyLock::new(|| WORDLIST_ARRAY.iter().copied().collect());
+const WORDLIST_EN_ARRAY: &[[char; 5]] = &include_wordlist!("wordlist-en.txt");
+const WORDLIST_DE_ARRAY: &[[char; 5]] = &include_wordlist!("wordlist-de.txt");
+
+static WORDLIST_EN: LazyLock<HashSet<[char; 5]>> =
+    LazyLock::new(|| WORDLIST_EN_ARRAY.iter().copied().collect());
+static WORDLIST_DE: LazyLock<HashSet<[char; 5]>> =
+    LazyLock::new(|| WORDLIST_DE_ARRAY.iter().copied().collect());
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Language {
+    #[default]
+    English,
+    German,
+}
+
+impl Language {
+    pub fn wordlist_array(&self) -> &'static [[char; 5]] {
+        match self {
+            Language::English => WORDLIST_EN_ARRAY,
+            Language::German => WORDLIST_DE_ARRAY,
+        }
+    }
+
+    fn wordlist_set(&self) -> &'static HashSet<[char; 5]> {
+        match self {
+            Language::English => &WORDLIST_EN,
+            Language::German => &WORDLIST_DE,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum WordListError {
@@ -69,23 +96,25 @@ pub struct Game {
     solution: [char; 5],
     max_attempts: usize,
     attempts: usize,
+    language: Language,
 }
 
 impl Game {
-    pub fn new(max_attempts: usize) -> Result<Game, WordListError> {
+    pub fn new(max_attempts: usize, language: Language) -> Result<Game, WordListError> {
         let mut rng = rand::rng();
-        match WORDLIST_ARRAY.choose(&mut rng) {
+        match language.wordlist_array().choose(&mut rng) {
             Some(&word) => Ok(Game {
                 solution: word,
                 max_attempts,
                 attempts: 0,
+                language,
             }),
             None => Err(WordListError::WordListEmpty),
         }
     }
 
     pub fn take_guess(&mut self, guess: &[char; 5]) -> Result<GuessResult, GameError> {
-        if !WORDLIST.contains(guess) {
+        if !self.language.wordlist_set().contains(guess) {
             return Err(GameError::WordNotInList);
         }
 
@@ -115,6 +144,10 @@ impl Game {
 
     pub fn max_attempts(&self) -> usize {
         self.max_attempts
+    }
+
+    pub fn language(&self) -> Language {
+        self.language
     }
 }
 

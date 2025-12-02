@@ -1,3 +1,4 @@
+use clap::{Parser, ValueEnum};
 use color_eyre::eyre::Result;
 use ratatui::{
     DefaultTerminal, Frame,
@@ -7,10 +8,38 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
 };
-use wordle_core::{GameError, GuessResult, LetterResult};
+use wordle_core::{GameError, GuessResult, Language as CoreLanguage, LetterResult};
 
 const MAX_ATTEMPTS: usize = 6;
 const WORD_LENGTH: usize = 5;
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum Language {
+    /// English (default)
+    #[value(name = "en")]
+    English,
+    /// German
+    #[value(name = "de")]
+    German,
+}
+
+impl From<Language> for CoreLanguage {
+    fn from(lang: Language) -> Self {
+        match lang {
+            Language::English => CoreLanguage::English,
+            Language::German => CoreLanguage::German,
+        }
+    }
+}
+
+#[derive(Parser, Debug)]
+#[command(name = "wordle_cli")]
+#[command(about = "Play Wordle in the terminal", long_about = None)]
+struct Args {
+    /// Language to play in
+    #[arg(short, long, value_enum, default_value_t = Language::English)]
+    language: Language,
+}
 
 enum GameOutcome {
     Won,
@@ -26,8 +55,8 @@ struct App {
 }
 
 impl App {
-    fn new_game() -> Result<Self> {
-        let game = wordle_core::Game::new(MAX_ATTEMPTS)
+    fn new_game(language: CoreLanguage) -> Result<Self> {
+        let game = wordle_core::Game::new(MAX_ATTEMPTS, language)
             .map_err(|_| color_eyre::eyre::eyre!("Failed to create game"))?;
 
         Ok(Self {
@@ -49,9 +78,10 @@ impl App {
         }
 
         match key.code {
-            KeyCode::Char(c) if c.is_ascii_alphabetic() && self.is_playing() => {
+            KeyCode::Char(c) if c.is_alphabetic() && self.is_playing() => {
                 if self.current_input.len() < WORD_LENGTH {
-                    self.current_input.push(c.to_ascii_lowercase());
+                    self.current_input
+                        .push(c.to_lowercase().next().unwrap_or(c));
                     self.error_message = None;
                 }
             }
@@ -63,7 +93,8 @@ impl App {
                 self.submit_guess();
             }
             KeyCode::Char('r') | KeyCode::Char('R') if !self.is_playing() => {
-                *self = Self::new_game().unwrap();
+                let language = self.game.language();
+                *self = Self::new_game(language).unwrap();
             }
             _ => {}
         }
@@ -105,17 +136,29 @@ impl App {
     }
 }
 
+/// Display a character in uppercase, but preserve ß instead of converting to SS
+fn uppercase_display(c: char) -> char {
+    if c == 'ß' {
+        c
+    } else {
+        c.to_uppercase().next().unwrap_or(c)
+    }
+}
+
 fn main() -> Result<()> {
     color_eyre::install()?;
 
+    let args = Args::parse();
+    let language = args.language.into();
+
     let terminal = ratatui::init();
-    let result = run(terminal);
+    let result = run(terminal, language);
     ratatui::restore();
     result
 }
 
-fn run(mut terminal: DefaultTerminal) -> Result<()> {
-    let mut app = App::new_game()?;
+fn run(mut terminal: DefaultTerminal, language: CoreLanguage) -> Result<()> {
+    let mut app = App::new_game(language)?;
 
     loop {
         terminal.draw(|frame| render(frame, &app))?;
@@ -172,7 +215,7 @@ fn render_game_board(frame: &mut Frame, app: &App, area: Rect) {
                     LetterResult::Absent => Color::DarkGray,
                 };
                 Span::styled(
-                    format!(" {} ", ch.to_uppercase()),
+                    format!(" {} ", uppercase_display(ch)),
                     Style::default().fg(Color::Black).bg(color).bold(),
                 )
             })
@@ -187,7 +230,7 @@ fn render_game_board(frame: &mut Frame, app: &App, area: Rect) {
         for i in 0..WORD_LENGTH {
             let ch = app.current_input.get(i).unwrap_or(&' ');
             current_spans.push(Span::styled(
-                format!(" {} ", ch.to_uppercase()),
+                format!(" {} ", uppercase_display(*ch)),
                 Style::default().fg(Color::White).bg(Color::DarkGray),
             ));
         }
@@ -228,10 +271,10 @@ fn render_status(frame: &mut Frame, app: &App, area: Rect) {
             ]
         }
         Some(GameOutcome::Lost { solution }) => {
-            let solution_str: String = solution.iter().collect();
+            let solution_str: String = solution.iter().map(|&c| uppercase_display(c)).collect();
             vec![
                 Line::from(Span::styled(
-                    format!("Game Over! The word was: {}", solution_str.to_uppercase()),
+                    format!("Game Over! The word was: {}", solution_str),
                     Style::default().fg(Color::Red).bold(),
                 )),
                 Line::from(""),

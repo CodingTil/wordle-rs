@@ -14,12 +14,8 @@ pub fn include_wordlist(input: TokenStream) -> TokenStream {
         .lines()
         .filter_map(|line| {
             let s = line.ok()?;
-            if s.len() == 5 {
-                let chars: Vec<char> = s.chars().collect();
-                Some(chars)
-            } else {
-                None
-            }
+            let chars: Vec<char> = s.to_lowercase().chars().collect();
+            if chars.len() == 5 { Some(chars) } else { None }
         })
         .collect::<Vec<_>>();
 

@@ -10,7 +10,8 @@ use ratatui::{
 use wordle_ai::WordleAI;
 use wordle_core::LetterResult;
 
-use crate::common::{AIType, WORD_LENGTH, WORDLIST_ARRAY, create_ai};
+use crate::common::{AIType, WORD_LENGTH, create_ai, get_wordlist};
+use wordle_core::Language;
 
 enum FeedbackInputState {
     EnteringFeedback {
@@ -31,8 +32,8 @@ struct App {
 }
 
 impl App {
-    fn new(ai_type: AIType) -> Self {
-        let wordlist = WORDLIST_ARRAY.to_vec();
+    fn new(ai_type: AIType, language: Language) -> Self {
+        let wordlist = get_wordlist(language).to_vec();
         let mut ai = create_ai(ai_type, wordlist);
         let current_recommendation = ai.make_guess();
 
@@ -227,8 +228,8 @@ impl App {
         }
     }
 
-    fn reset(&mut self) {
-        let wordlist = WORDLIST_ARRAY.to_vec();
+    fn reset(&mut self, language: Language) {
+        let wordlist = get_wordlist(language).to_vec();
         let mut ai = create_ai(self.ai_type, wordlist);
         let current_recommendation = ai.make_guess();
 
@@ -241,15 +242,15 @@ impl App {
     }
 }
 
-pub fn run_assistant(ai_type: AIType) -> Result<()> {
+pub fn run_assistant(ai_type: AIType, language: Language) -> Result<()> {
     let terminal = ratatui::init();
-    let result = run(terminal, ai_type);
+    let result = run(terminal, ai_type, language);
     ratatui::restore();
     result
 }
 
-fn run(mut terminal: DefaultTerminal, ai_type: AIType) -> Result<()> {
-    let mut app = App::new(ai_type);
+fn run(mut terminal: DefaultTerminal, ai_type: AIType, language: Language) -> Result<()> {
+    let mut app = App::new(ai_type, language);
 
     loop {
         terminal.draw(|frame| render(frame, &app))?;
@@ -259,7 +260,7 @@ fn run(mut terminal: DefaultTerminal, ai_type: AIType) -> Result<()> {
                 break Ok(());
             }
             if key.code == KeyCode::Char('r') || key.code == KeyCode::Char('R') {
-                app.reset();
+                app.reset(language);
                 continue;
             }
             if key.code == KeyCode::Esc
