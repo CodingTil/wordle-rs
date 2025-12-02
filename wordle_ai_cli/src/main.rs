@@ -19,7 +19,7 @@ enum Commands {
     /// Run the AI assistant to help you solve Wordle puzzles
     Assistant {
         /// Which AI agent to use
-        #[arg(short, long, value_enum, default_value_t = AIType::Random)]
+        #[arg(short, long, value_enum, default_value_t = AIType::Heuristic)]
         ai: AIType,
     },
     /// Simulate games and compare AI performance
