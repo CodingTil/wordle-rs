@@ -1,6 +1,4 @@
 use leptos::prelude::*;
-use leptos::wasm_bindgen::JsCast;
-use leptos::web_sys;
 use wordle_core::{Language, LetterResult};
 
 use crate::components::{Footer, Header, MessageBanner, MessageType, Tile};
@@ -21,7 +19,7 @@ pub fn Game() -> impl IntoView {
     // Submit guess
     let submit_guess = move || {
         let guess = current_guess.get();
-        if guess.len() != 5 {
+        if guess.chars().count() != 5 {
             set_message.set(Some((
                 "Word must be 5 letters long!".to_string(),
                 MessageType::Info,
@@ -117,39 +115,19 @@ pub fn Game() -> impl IntoView {
             set_current_guess.update(|g| {
                 g.pop();
             });
-        } else if key.len() == 1
-            && key.chars().next().unwrap().is_alphabetic()
-            && current_guess.get().len() < 5
-        {
-            set_current_guess.update(|g| {
-                g.push(key.to_lowercase().chars().next().unwrap());
-            });
-        }
-    };
-
-    // Handle input change (for mobile)
-    let handle_input = move |ev: web_sys::Event| {
-        let target = ev.target().unwrap();
-        let input: web_sys::HtmlInputElement = target.dyn_into().unwrap();
-        let value = input.value();
-
-        if !game_over.get() {
-            // Take only alphabetic characters, max 5
-            let filtered: String = value
-                .chars()
-                .filter(|c| c.is_alphabetic())
-                .take(5)
-                .collect::<String>()
-                .to_lowercase();
-
-            set_current_guess.set(filtered);
-        }
-    };
-
-    // Handle Enter key on input (for mobile)
-    let handle_input_keydown = move |ev: web_sys::KeyboardEvent| {
-        if ev.key() == "Enter" && !game_over.get() {
-            submit_guess();
+        } else if current_guess.get().chars().count() < 5 {
+            // Only accept single character keys (excludes "Shift", "Control", "Alt", etc.)
+            // Use chars().count() to properly handle multi-byte UTF-8 characters
+            if key.chars().count() == 1
+                && let Some(c) = key.chars().next()
+                && c.is_alphabetic()
+            {
+                // Use to_lowercase() to preserve ß
+                let lower = c.to_lowercase().next().unwrap_or(c);
+                set_current_guess.update(|g| {
+                    g.push(lower);
+                });
+            }
         }
     };
 
@@ -176,20 +154,6 @@ pub fn Game() -> impl IntoView {
                 <div class="section">
                     <div class="section__title">"Guess the 5-letter word"</div>
 
-                    {/* Mobile input field */}
-                    <div class="mobile-input-container">
-                        <input
-                            type="text"
-                            class="mobile-input"
-                            placeholder="Type your guess..."
-                            maxlength="5"
-                            prop:value=move || current_guess.get()
-                            on:input=handle_input
-                            on:keydown=handle_input_keydown
-                            disabled=move || game_over.get()
-                        />
-                    </div>
-
                     <div class="game-board">
                         {/* Previous guesses */}
                         {move || {
@@ -212,19 +176,25 @@ pub fn Game() -> impl IntoView {
                                 .collect::<Vec<_>>()
                         }}
 
-                        {/* Current guess row */}
+                        {/* Current guess row with invisible input overlay */}
                         {move || {
                             if !game_over.get() {
                                 let guess = current_guess.get();
                                 let chars: Vec<char> = guess.chars().collect();
                                 view! {
-                                    <div class="word-row">
+                                    <div class="word-row word-row--current">
                                         {(0..5)
-                                            .map(|i| {
+                                            .map(move |i| {
                                                 let ch = chars.get(i).copied().unwrap_or(' ');
                                                 view! { <Tile letter=ch result=None interactive=false /> }
                                             })
                                             .collect::<Vec<_>>()}
+                                        {/* Invisible input for mobile keyboard */}
+                                        <input
+                                            type="text"
+                                            class="invisible-mobile-input"
+                                            prop:value=move || current_guess.get()
+                                        />
                                     </div>
                                 }
                                 .into_any()

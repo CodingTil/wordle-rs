@@ -1,6 +1,15 @@
 use leptos::prelude::*;
 use wordle_core::LetterResult;
 
+/// Display a character in uppercase, but preserve ß instead of converting to SS
+fn uppercase_display(c: char) -> char {
+    if c == 'ß' {
+        c
+    } else {
+        c.to_uppercase().next().unwrap_or(c)
+    }
+}
+
 #[component]
 pub fn Tile(
     letter: char,
@@ -26,7 +35,7 @@ pub fn Tile(
     }
 
     let class = classes.join(" ");
-    let ch_str = letter.to_string();
+    let ch_str = uppercase_display(letter).to_string();
 
     view! {
         <div class=class>
@@ -59,7 +68,7 @@ where
     }
 
     let class = classes.join(" ");
-    let ch_str = letter.to_string();
+    let ch_str = uppercase_display(letter).to_string();
 
     view! {
         <div class=class on:click=move |_| on_click()>
