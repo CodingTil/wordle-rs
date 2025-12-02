@@ -94,4 +94,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=wordle-ai-web
+          command: pages deploy wordle_ai_web/dist --project-name=wordle-ai-web
