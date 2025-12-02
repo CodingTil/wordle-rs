@@ -5,11 +5,11 @@ use wordle_core::LetterResult;
 #[derive(Clone, Debug)]
 pub struct Knowledge {
     /// For each position (0-4), which letters are still possible
-    pub possible_letters: [HashSet<char>; 5],
+    pub(crate) possible_letters: [HashSet<char>; 5],
     /// Letters that must appear in the word at least # times
-    pub must_contain: HashMap<char, u8>,
+    pub(crate) must_contain: HashMap<char, u8>,
     /// Letters that are fixed in certain positions
-    pub fixed_positions: [bool; 5],
+    pub(crate) fixed_positions: [bool; 5],
 }
 
 impl Knowledge {
