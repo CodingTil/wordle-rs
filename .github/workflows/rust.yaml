@@ -31,12 +31,12 @@ jobs:
       - name: Test
         run: cargo test --all-features
 
-  ai_website:
+  website:
     runs-on: ubuntu-latest
     needs: [clippy, format, build, test]
     defaults:
       run:
-        working-directory: wordle_ai_web
+        working-directory: wordle_web
 
     steps:
       - uses: actions/checkout@v6
@@ -94,4 +94,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy wordle_ai_web/dist --project-name=wordle-ai-web
+          command: pages deploy wordle_web/dist --project-name=wordle-web

@@ -1,6 +1,6 @@
 # wordle-rs
 
-A Wordle game implementation in Rust with a terminal UI, supporting multiple languages.
+A Wordle game implementation in Rust with a terminal and web UI, supporting multiple languages.
 
 ## Playing the Game
 
@@ -45,18 +45,6 @@ AI options (`--ai` or `-a`):
 - `random` - Pure random guessing
 - `entropy` - Maximum information gain (slower but optimal)
 
-### Web AI Assistant
-
-Or use the browser version at [https://ai.wordle.tilmohr.com](https://ai.wordle.tilmohr.com).
-
-Alternatively start a local web instance with:
-```bash
-cd wordle_ai_web
-trunk serve --open
-```
-
-The web version includes a language selector dropdown to switch between English and German.
-
 ### AI Simulation
 
 Evaluate and compare different AI strategies on simulated games.
@@ -80,6 +68,21 @@ Simulation options:
 - `--num-games` or `-n` - Number of games to simulate (default: 1000)
 - `--ai` or `-a` - AI agents to test (can specify multiple, defaults to fast agents)
 - `--language` or `-l` - Language wordlist to use (default: en)
+
+## Web Version
+
+Play Wordle in your browser or use the AI assistant at [https://wordle.tilmohr.com](https://wordle.tilmohr.com).
+
+- Play the game at the root URL: [https://wordle.tilmohr.com](https://wordle.tilmohr.com)
+- Use the AI solver at: [https://wordle.tilmohr.com/ai](https://wordle.tilmohr.com/ai)
+
+Alternatively start a local web instance with:
+```bash
+cd wordle_web
+trunk serve --open
+```
+
+The web version includes a language selector dropdown to switch between English and German, and navigation buttons to switch between the game and AI solver.
 
 ## Supported Languages
 

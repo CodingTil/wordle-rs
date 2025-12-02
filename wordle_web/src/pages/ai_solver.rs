@@ -2,14 +2,10 @@ use leptos::prelude::*;
 use wordle_ai::{HeuristicGuesser, WordleAI};
 use wordle_core::{Language, LetterResult};
 
-mod styles;
-
-fn main() {
-    leptos::mount::mount_to_body(App)
-}
+use crate::components::{Footer, Header, InteractiveTile, MessageBanner, MessageType, Tile};
 
 #[component]
-fn App() -> impl IntoView {
+pub fn AiSolver() -> impl IntoView {
     // State
     let (language, set_language) = signal(Language::English);
     let mut initial_ai = HeuristicGuesser::new(Language::English.wordlist_array().to_vec());
@@ -18,7 +14,7 @@ fn App() -> impl IntoView {
     let (recommendation, set_recommendation) = signal(initial_recommendation);
     let (feedback, set_feedback) = signal([None::<LetterResult>; 5]);
     let (history, set_history) = signal(Vec::<([char; 5], [LetterResult; 5])>::new());
-    let (message, set_message) = signal(None::<(String, &'static str)>);
+    let (message, set_message) = signal(None::<(String, MessageType)>);
     let (won, set_won) = signal(false);
 
     // Toggle feedback for a position
@@ -53,7 +49,10 @@ fn App() -> impl IntoView {
                     set_won.set(true);
                     set_recommendation.set(None);
                     set_feedback.set([None; 5]);
-                    set_message.set(Some(("Congratulations! You won!".to_string(), "success")));
+                    set_message.set(Some((
+                        "Congratulations! You won!".to_string(),
+                        MessageType::Success,
+                    )));
                     return;
                 }
 
@@ -66,7 +65,7 @@ fn App() -> impl IntoView {
                 set_recommendation.set(next);
                 set_feedback.set([None; 5]);
                 set_message.set(if next.is_none() {
-                    Some(("No more words available!".to_string(), "error"))
+                    Some(("No more words available!".to_string(), MessageType::Error))
                 } else {
                     None
                 });
@@ -74,7 +73,7 @@ fn App() -> impl IntoView {
         } else {
             set_message.set(Some((
                 "Please set feedback for all letters!".to_string(),
-                "info",
+                MessageType::Info,
             )));
         }
     };
@@ -89,9 +88,9 @@ fn App() -> impl IntoView {
             set_recommendation.set(next);
             set_feedback.set([None; 5]);
             set_message.set(if next.is_none() {
-                Some(("No more words available!".to_string(), "error"))
+                Some(("No more words available!".to_string(), MessageType::Error))
             } else {
-                Some(("Word marked as invalid".to_string(), "info"))
+                Some(("Word marked as invalid".to_string(), MessageType::Info))
             });
         }
     };
@@ -123,45 +122,18 @@ fn App() -> impl IntoView {
     };
 
     view! {
-        <style>{styles::STYLES}</style>
-
         <div class="app">
-            {/* Header */}
-            <div class="header">
-                "WORDLE SOLVER"
-                <select
-                    class="language-select"
-                    on:change=move |ev| {
-                        let value = event_target_value(&ev);
-                        let new_lang = match value.as_str() {
-                            "de" => Language::German,
-                            _ => Language::English,
-                        };
-                        change_language(new_lang);
-                    }
-                    prop:value=move || match language.get() {
-                        Language::English => "en",
-                        Language::German => "de",
-                    }
-                >
-                    <option value="en">"English"</option>
-                    <option value="de">"German"</option>
-                </select>
-            </div>
+            <Header
+                title="WORDLE SOLVER"
+                language=language.into()
+                on_language_change=change_language
+                show_nav=true
+                nav_to=Some("/")
+                nav_label=Some("Play Game")
+            />
 
-            {/* Message Banner */}
-            {move || {
-                message.get().map(|(msg, msg_type)| {
-                    let class = match msg_type {
-                        "success" => "message-banner message-banner--success",
-                        "error" => "message-banner message-banner--error",
-                        _ => "message-banner message-banner--info",
-                    };
-                    view! { <div class=class>{msg}</div> }
-                })
-            }}
+            <MessageBanner message=message.into() />
 
-            {/* Main Content */}
             <div class="content">
                 {/* AI Recommendation */}
                 <div class="section">
@@ -178,18 +150,12 @@ fn App() -> impl IntoView {
                                         .enumerate()
                                         .map(|(i, ch)| {
                                             let fb = current_feedback[i];
-                                            let class = match fb {
-                                                None => "tile tile--default",
-                                                Some(LetterResult::Absent) => "tile tile--absent",
-                                                Some(LetterResult::Misplaced) => "tile tile--misplaced",
-                                                Some(LetterResult::Correct) => "tile tile--correct",
-                                            };
-                                            let ch_str = ch.to_string();
-
                                             view! {
-                                                <div class=class on:click=move |_| toggle_feedback(i)>
-                                                    {ch_str}
-                                                </div>
+                                                <InteractiveTile
+                                                    letter=ch
+                                                    result=fb
+                                                    on_click=move || toggle_feedback(i)
+                                                />
                                             }
                                         })
                                         .collect::<Vec<_>>()}
@@ -224,13 +190,14 @@ fn App() -> impl IntoView {
                                                     .into_iter()
                                                     .zip(results)
                                                     .map(|(ch, result)| {
-                                                        let class = match result {
-                                                            LetterResult::Absent => "tile tile--small tile--absent tile--inactive",
-                                                            LetterResult::Misplaced => "tile tile--small tile--misplaced tile--inactive",
-                                                            LetterResult::Correct => "tile tile--small tile--correct tile--inactive",
-                                                        };
-                                                        let ch_str = ch.to_string();
-                                                        view! { <div class=class>{ch_str}</div> }
+                                                        view! {
+                                                            <Tile
+                                                                letter=ch
+                                                                result=Some(result)
+                                                                small=true
+                                                                interactive=false
+                                                            />
+                                                        }
                                                     })
                                                     .collect::<Vec<_>>()}
                                             </div>
@@ -244,7 +211,6 @@ fn App() -> impl IntoView {
                 </div>
             </div>
 
-            {/* Action Buttons */}
             <div class="button-group">
                 {move || {
                     if recommendation.get().is_some() && !won.get() {
@@ -269,13 +235,7 @@ fn App() -> impl IntoView {
                 </button>
             </div>
 
-            {/* Footer */}
-            <div class="footer">
-                "© 2025 Til Mohr · "
-                <a href="https://github.com/CodingTil/wordle-rs" target="_blank" rel="noopener noreferrer">
-                    "Source Code"
-                </a>
-            </div>
+            <Footer />
         </div>
     }
 }
