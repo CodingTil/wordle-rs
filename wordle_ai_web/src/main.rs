@@ -268,6 +268,14 @@ fn App() -> impl IntoView {
                     "Reset"
                 </button>
             </div>
+
+            {/* Footer */}
+            <div class="footer">
+                "© 2025 Til Mohr · "
+                <a href="https://github.com/CodingTil/wordle-rs" target="_blank" rel="noopener noreferrer">
+                    "Source Code"
+                </a>
+            </div>
         </div>
     }
 }

@@ -8,6 +8,7 @@ pub const STYLES: &str = r#"
 html {
     overflow-x: hidden;
     width: 100%;
+    height: 100%;
 }
 
 body {
@@ -18,6 +19,7 @@ body {
     color: #1a1a1b;
     overflow-x: hidden;
     width: 100%;
+    height: 100%;
 }
 
 .app {
@@ -407,6 +409,34 @@ body {
 
     .word-row {
         gap: 2px;
+    }
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+    padding: 20px 10px 40px 10px;
+    text-align: center;
+    font-size: 11px;
+    color: #878a8c;
+    width: 100%;
+}
+
+.footer a {
+    color: #878a8c;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: #6aaa64;
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .footer {
+        font-size: 10px;
+        padding: 15px 10px 30px 10px;
     }
 }
 "#;
