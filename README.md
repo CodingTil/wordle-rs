@@ -86,7 +86,7 @@ The web version includes a language selector dropdown to switch between English 
 
 ## Supported Languages
 
-- **English** (`en`) - 14,855 words
-- **German** (`de`) - 6,832 words (including words with umlauts ä, ö, ü, ß)
+- **English** (`en`)
+- **German** (`de`) (including words with umlauts ä, ö, ü, ß)
 
 All game modes (CLI game, AI assistant, web assistant, and simulation) support both languages!
