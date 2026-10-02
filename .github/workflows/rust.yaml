@@ -6,28 +6,28 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Clippy
         run: cargo clippy --all-features -- -D warnings
 
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Format
         run: cargo fmt --all -- --check
 
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Build
         run: cargo build --all-features
   
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Test
         run: cargo test --all-features
 
@@ -39,7 +39,7 @@ jobs:
         working-directory: wordle_web
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # -----------------------------
       # Install wasm target + Trunk
