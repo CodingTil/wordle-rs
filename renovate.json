@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "extends": [
+    ":semanticCommits",
+    "group:allNonMajor"
+  ],
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)build_release\\.sh$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: versioning=(?<versioning>[^\\s]+?))?\\s+[A-Za-z0-9_]+?_VERSION\\s*=\\s*[\\\"']?(?<currentValue>[^\\s\\\"']+?)[\\\"']?\\s"
+      ]
+    }
+  ],
+
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "matchDepNames": ["WebAssembly/binaryen"],
+      "groupName": "Binaryen",
+      "automerge": false
+    }
+  ]
+}
