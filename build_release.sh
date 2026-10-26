@@ -21,7 +21,7 @@ cargo binstall trunk -y
 # Get wasm-opt
 # Get latest wasm-opt (Binaryen) locally, since crates.io version is outdated
 # renovate: datasource=github-releases depName=WebAssembly/binaryen versioning=regex:^version_(?<major>\d+)$
-WASM_OPT_VERSION=version_124
+WASM_OPT_VERSION=version_133
 curl -L -o binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/${WASM_OPT_VERSION}/binaryen-${WASM_OPT_VERSION}-x86_64-linux.tar.gz"
 tar -xzf binaryen.tar.gz
 mv binaryen-${WASM_OPT_VERSION}/bin/wasm-opt ./wasm-opt
