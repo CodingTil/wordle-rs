@@ -6,5 +6,5 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"] }
 color-eyre = "0.6.5"
-ratatui = "0.29.0"
+ratatui = "0.30.0"
 wordle_core = { path = "../wordle_core" }
